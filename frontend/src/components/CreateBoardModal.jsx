@@ -2,11 +2,17 @@ import { useState, useEffect } from 'react';
 import { createBoard } from '../api';
 import { BOARD_COLORS, BOARD_GRADIENTS, BOARD_IMAGES } from '../constants';
 
+const ALL_COLORS = [...BOARD_GRADIENTS, ...BOARD_COLORS];
+
 export default function CreateBoardModal({ onClose, onCreated }) {
+  const [view, setView] = useState('main'); // main, bg-selection, photos-view, colors-view
+  const [history, setHistory] = useState([]);
+  
   const [title, setTitle] = useState('');
   const [bgType, setBgType] = useState('image');
   const [bgValue, setBgValue] = useState(BOARD_IMAGES[0]);
-  const [customUrl, setCustomUrl] = useState('');
+  const [visibility, setVisibility] = useState('Workspace');
+  const [touched, setTouched] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -15,87 +21,172 @@ export default function CreateBoardModal({ onClose, onCreated }) {
     return () => document.removeEventListener('keydown', h);
   }, [onClose]);
 
+  const navigateTo = (newView) => {
+    setHistory(prev => [...prev, view]);
+    setView(newView);
+  };
+
+  const goBack = () => {
+    const prevView = history[history.length - 1];
+    setHistory(prev => prev.slice(0, -1));
+    setView(prevView || 'main');
+  };
+
   const submit = async (e) => {
-    e.preventDefault();
-    if (!title.trim()) return setError('Title is required');
-    if (title.trim().length > 100) return setError('Title max 100 chars');
+    if (e) e.preventDefault();
+    if (!title.trim()) { setTouched(true); return; }
     try {
       const board = await createBoard({ title: title.trim(), bg_type: bgType, bg_value: bgValue });
-      if (board?.error) return setError(board.error.message);
       onCreated(board);
     } catch (err) {
-      setError(err.message || 'API Error: Could not reach the server');
+      setError(err.message || 'Failed to create board');
     }
   };
 
-  const pickBg = (val, type) => { setBgValue(val); setBgType(type); };
+  const pickBg = (val, type) => {
+    setBgValue(val);
+    setBgType(type);
+  };
+
+  const renderHeader = (titleText) => (
+    <div className="modal-header">
+      {view !== 'main' && (
+        <button className="modal-back-btn" onClick={goBack}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+      )}
+      <div className="modal-header-title">{titleText}</div>
+      <button className="icon-btn" onClick={onClose} style={{ position: 'absolute', right: 8 }}>✕</button>
+    </div>
+  );
+
+  const PreviewSkeleton = () => (
+    <svg width="140" height="80" viewBox="0 0 180 100" fill="none" className="board-preview-skeleton">
+      <rect x="10" y="10" width="45" height="40" rx="4" fill="rgba(255,255,255,0.8)" />
+      <rect x="65" y="10" width="45" height="70" rx="4" fill="rgba(255,255,255,0.8)" />
+      <rect x="120" y="10" width="45" height="25" rx="4" fill="rgba(255,255,255,0.8)" />
+      <rect x="15" y="15" width="20" height="4" rx="2" fill="rgba(0,0,0,0.2)" />
+      <rect x="70" y="15" width="20" height="4" rx="2" fill="rgba(0,0,0,0.2)" />
+      <rect x="125" y="15" width="20" height="4" rx="2" fill="rgba(0,0,0,0.2)" />
+      <rect x="15" y="25" width="35" height="15" rx="3" fill="rgba(0,0,0,0.1)" />
+      <rect x="70" y="25" width="35" height="15" rx="3" fill="rgba(0,0,0,0.1)" />
+      <rect x="70" y="45" width="35" height="15" rx="3" fill="rgba(0,0,0,0.1)" />
+    </svg>
+  );
 
   return (
     <div className="overlay" onClick={onClose}>
-      <div className="modal-box create-board-modal glass-heavy" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <span>Create board</span>
-          <button className="icon-btn" onClick={onClose}>✕</button>
-        </div>
+      <div className="modal-box create-board-modal" onClick={e => e.stopPropagation()}>
         
-        <div className="modal-body">
-          <div className="bg-selector-group">
-            <div className="bg-selector-label" style={{ marginBottom: 6 }}>Photos</div>
-            <div className="bg-grid" style={{ marginBottom: 16 }}>
-              {BOARD_IMAGES.slice(0, 8).map(img => (
-                <button key={img} className={`bg-swatch${bgValue===img?' sel':''}`} 
-                  style={{ backgroundImage: `url(${img})` }} onClick={() => pickBg(img, 'image')} />
-              ))}
-            </div>
+        {view === 'main' && (
+          <div className="view-container">
+            {renderHeader('Create board')}
+            <div className="modal-body">
+              <div className="board-preview-container" style={{ background: bgType === 'image' ? `url(${bgValue}) center/cover` : bgValue }}>
+                <PreviewSkeleton />
+              </div>
 
-            <div className="bg-selector-label" style={{ marginBottom: 6 }}>Gradients</div>
-            <div className="bg-grid">
-              {BOARD_GRADIENTS.slice(0, 8).map(grad => (
-                <button key={grad} className={`bg-swatch${bgValue===grad?' sel':''}`} 
-                  style={{ background: grad }} onClick={() => pickBg(grad, 'gradient')} />
-              ))}
-            </div>
+              <div className="bg-selector-label">Background</div>
+              <div className="bg-grid-photos" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 8 }}>
+                {BOARD_IMAGES.slice(0, 4).map(img => (
+                  <button key={img} className={`bg-swatch${bgValue===img?' sel':''}`} 
+                    style={{ backgroundImage: `url(${img})` }} onClick={() => pickBg(img, 'image')} />
+                ))}
+              </div>
+              <div className="bg-grid-colors" style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 6, marginBottom: 16 }}>
+                {ALL_COLORS.slice(0, 5).map(val => (
+                  <button key={val} className={`bg-swatch${bgValue===val?' sel':''}`} 
+                    style={{ background: val }} onClick={() => pickBg(val, val.includes('gradient') ? 'gradient' : 'color')} />
+                ))}
+                <button className="bg-swatch more-btn" onClick={() => navigateTo('bg-selection')}>···</button>
+              </div>
 
-            <div className="bg-selector-label" style={{ marginBottom: 4, marginTop: 16 }}>Custom Image URL</div>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <input type="text" placeholder="https://..." value={customUrl} onChange={e => setCustomUrl(e.target.value)} />
-              <button type="button" className="btn-primary sm" disabled={!customUrl.trim()} onClick={() => pickBg(customUrl.trim(), 'image')}>Preview</button>
+              <div className="form-group" style={{ marginBottom: 16 }}>
+                <label className="field-label">Custom Image URL</label>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <input 
+                    type="text" 
+                    placeholder="https://..." 
+                    style={{ background: '#22272b', border: '1px solid #444c53', color: '#b6c2cf', padding: '6px 8px', borderRadius: '4px', flex: 1, fontSize: '13px' }}
+                    onChange={e => { if (e.target.value.trim()) pickBg(e.target.value.trim(), 'image'); }} 
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="field-label">Board title <span className="req">*</span></label>
+                <input 
+                  autoFocus 
+                  className={touched && !title.trim() ? 'input-error' : ''}
+                  value={title} 
+                  onChange={e => { setTitle(e.target.value); setError(''); }} 
+                  onBlur={() => setTouched(true)}
+                />
+                {touched && !title.trim() && (
+                  <div className="validation-msg">👋 Board title is required</div>
+                )}
+              </div>
+
+              <button className="btn-primary full" disabled={!title.trim()} onClick={submit}>Create</button>
             </div>
           </div>
+        )}
 
-          <div className="board-preview" style={{ 
-            background: bgType === 'image' ? `url(${bgValue}) center/cover` : bgValue,
-            marginTop: 20,
-            marginBottom: 20
-          }}>
-            <svg width="180" height="100" viewBox="0 0 180 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="10" y="10" width="45" height="40" rx="4" fill="rgba(255,255,255,0.8)" />
-              <rect x="65" y="10" width="45" height="70" rx="4" fill="rgba(255,255,255,0.8)" />
-              <rect x="120" y="10" width="45" height="25" rx="4" fill="rgba(255,255,255,0.8)" />
-              <rect x="15" y="15" width="20" height="4" rx="2" fill="rgba(0,0,0,0.2)" />
-              <rect x="70" y="15" width="20" height="4" rx="2" fill="rgba(0,0,0,0.2)" />
-              <rect x="125" y="15" width="20" height="4" rx="2" fill="rgba(0,0,0,0.2)" />
-              <rect x="15" y="25" width="35" height="15" rx="3" fill="rgba(0,0,0,0.1)" />
-              <rect x="70" y="25" width="35" height="15" rx="3" fill="rgba(0,0,0,0.1)" />
-              <rect x="70" y="45" width="35" height="15" rx="3" fill="rgba(0,0,0,0.1)" />
-            </svg>
-          </div>
+        {view === 'bg-selection' && (
+          <div className="view-container">
+            {renderHeader('Board background')}
+            <div className="modal-body">
+              <div className="bg-selector-label">
+                Photos <span className="view-more-link" onClick={() => navigateTo('photos-view')}>View more</span>
+              </div>
+              <div className="bg-grid selection-grid">
+                {BOARD_IMAGES.slice(0, 6).map(img => (
+                  <button key={img} className={`bg-swatch${bgValue===img?' sel':''}`} 
+                    style={{ backgroundImage: `url(${img})`, height: 56 }} onClick={() => pickBg(img, 'image')} />
+                ))}
+              </div>
 
-          <form onSubmit={submit}>
-            <div className="form-group" style={{ marginBottom: 16 }}>
-              <label className="field-label">Board title <span className="req">*</span></label>
-              <input autoFocus maxLength={100} placeholder="e.g. Sales Pipeline" value={title} 
-                onChange={e => { setTitle(e.target.value); setError(''); }} />
-              {error && <p className="field-error">{error}</p>}
+              <div className="bg-selector-label" style={{ marginTop: 16 }}>
+                Colors <span className="view-more-link" onClick={() => navigateTo('colors-view')}>View more</span>
+              </div>
+              <div className="bg-grid selection-grid">
+                {ALL_COLORS.slice(0, 6).map(val => (
+                  <button key={val} className={`bg-swatch${bgValue===val?' sel':''}`} 
+                    style={{ background: val, height: 56 }} onClick={() => pickBg(val, val.includes('gradient') ? 'gradient' : 'color')} />
+                ))}
+              </div>
             </div>
+          </div>
+        )}
 
-            <button type="submit" className="btn-primary full" disabled={!title.trim()}>Create</button>
-          </form>
+        {view === 'photos-view' && (
+          <div className="view-container">
+            {renderHeader('Photos')}
+            <div className="modal-body">
+              <div className="bg-grid selection-grid">
+                {BOARD_IMAGES.map(img => (
+                  <button key={img} className={`bg-swatch${bgValue===img?' sel':''}`} 
+                    style={{ backgroundImage: `url(${img})`, height: 56 }} onClick={() => pickBg(img, 'image')} />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
-          <p style={{ marginTop: 12, fontSize: 12, color: 'var(--text-sub)', textAlign: 'center' }}>
-            By using images from Unsplash, you agree to their license and terms of service.
-          </p>
-        </div>
+        {view === 'colors-view' && (
+          <div className="view-container">
+            {renderHeader('Colors')}
+            <div className="modal-body">
+              <div className="bg-grid selection-grid">
+                {ALL_COLORS.map(val => (
+                  <button key={val} className={`bg-swatch${bgValue===val?' sel':''}`} 
+                    style={{ background: val, height: 56 }} onClick={() => pickBg(val, val.includes('gradient') ? 'gradient' : 'color')} />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );

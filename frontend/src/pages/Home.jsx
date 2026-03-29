@@ -5,6 +5,8 @@ import Navbar from '../components/Navbar';
 import CreateBoardModal from '../components/CreateBoardModal';
 
 
+import Sidebar from '../components/Sidebar';
+
 export default function Home() {
   const [boards, setBoards] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -56,9 +58,10 @@ export default function Home() {
   };
 
   return (
-    <div className="home-page-container">
+    <div className="home-page-container app-container">
       <Navbar />
       <div className="app-body">
+        <Sidebar className="home-sidebar" />
         <main className="home-main" style={{ flex: 1, padding: '32px 48px', overflowY: 'auto' }}>
           <section className="board-section">
             {boards.some(b => b.is_starred) && (

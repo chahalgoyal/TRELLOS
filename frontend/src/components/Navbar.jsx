@@ -23,14 +23,9 @@ export default function Navbar({ boardTitle }) {
       <div className="navbar-left">
         <button className="nav-icon-btn" onClick={() => setDrawerOpen(true)}>▦</button>
         <Link to="/" className="navbar-logo" style={{ display: 'flex', alignItems: 'center', gap: 6, textDecoration: 'none', color: 'inherit' }}>
-          <svg width="22" height="18" viewBox="0 0 24 24" fill="currentColor">
-            <rect x="2" y="2" width="20" height="20" rx="3" fill="rgba(255,255,255,0.15)"/>
-            <rect x="5" y="5" width="6" height="11" rx="1" fill="#fff"/>
-            <rect x="13" y="5" width="6" height="7" rx="1" fill="#fff"/>
-          </svg>
+          <img src="/icons8-trello.svg" alt="Trello Logo" width="24" height="24" style={{ filter: 'brightness(0) invert(1)' }} />
           <span className="logo-text">TRELLOS</span>
         </Link>
-
       </div>
 
 
