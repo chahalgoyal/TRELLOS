@@ -5,6 +5,7 @@ require('dotenv').config();
 const app = express();
 app.use(cors({
   origin: [
+    'https://trellos.goyal.me',
     'https://trellos-clone.netlify.app',
     'http://localhost:5173'
   ],
