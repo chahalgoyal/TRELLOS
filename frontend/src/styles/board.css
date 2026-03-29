@@ -137,6 +137,14 @@
   border-right: 1px solid var(--border-glass);
   background-color: #1f1f21 !important;
 }
+
+/* Responsive: Hide sidebar on mobile */
+@media (max-width: 768px) {
+  .app-sidebar {
+    display: none !important;
+  }
+}
+
 .sidebar-section { padding: 4px 12px; }
 .sidebar-heading { font-size: 12px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; margin: 12px 0 6px 12px; }
 .sidebar-item {
