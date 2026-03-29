@@ -1,4 +1,4 @@
-const BASE = import.meta.env.VITE_API_URL || 'https://trellos.onrender.com/api';
+const BASE = import.meta.env.VITE_API_URL || 'https://api.goyal.me/api';
 
 const req = async (url, opts = {}) => {
   const r = await fetch(BASE + url, { headers: { 'Content-Type': 'application/json' }, ...opts });
