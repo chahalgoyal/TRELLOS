@@ -27,8 +27,8 @@ A full-stack Kanban board application inspired by Trello. This project allows us
 - CORS & security configured for secure client-server communication.
 
 **Infrastructure:**
-- Frontend: Netlify / Cloudflare (`https://trellos.goyal.me`)
-- Backend: AWS EC2 Instance
+- Frontend: `https://trellos.goyal.me` 
+- Backend: AWS EC2 Instance with Nginx (`https://api.goyal.me`)
 
 ## 🚀 Getting Started
 
@@ -81,8 +81,11 @@ To get a local copy up and running, follow these simple steps.
 
 ## 📦 Deployment
 
-This project's backend is hosted on AWS EC2, taking advantage of Nginx and a dedicated Cloudflare DNS configuration (`api.goyal.me`) to serve requests over HTTPS.
-The React frontend is built via Vite and deployed via Netlify (`trellos-clone.netlify.app`), fully secured with SSL.
+**Frontend:**
+The React application is built via Vite and deployed at [https://trellos.goyal.me](https://trellos.goyal.me).
+
+**Backend:**
+The Node.js server is hosted on an **AWS EC2 instance**. It uses **Nginx** as a reverse proxy to route traffic securely, and is accessible fully over HTTPS via a custom domain (`https://api.goyal.me`).
 
 ## 🤝 Contributing
 
