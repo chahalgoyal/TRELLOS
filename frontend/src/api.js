@@ -1,4 +1,4 @@
-const BASE = import.meta.env.VITE_API_URL || 'http://16.171.133.112:5000/api';
+const BASE = import.meta.env.VITE_API_URL || 'https://trellos.onrender.com/api';
 
 const req = async (url, opts = {}) => {
   const r = await fetch(BASE + url, { headers: { 'Content-Type': 'application/json' }, ...opts });
