@@ -7,6 +7,7 @@ app.use(cors({
   origin: [
     'https://trellos.goyal.me',
     'https://trellos-clone.netlify.app',
+    'https://cg-trellos.netlify.app/',
     'http://localhost:5173'
   ],
   credentials: true
