@@ -165,6 +165,7 @@ export default function Board() {
 
   const listIds = useMemo(() => lists.map(l => `list-${l.id}`), [lists]);
 
+  
   const handleCardUpdated = (updated) => {
     setCards(prev => {
       const next = {};
